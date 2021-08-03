@@ -7,7 +7,7 @@ export interface ITicket {
     assignee: string
     reporter: string
     priority: Priority
-    component: string
+    component: string []
     type: Type
 }
 
@@ -19,7 +19,7 @@ export class Ticket {
     public assignee: string
     public reporter: string
     public priority: Priority
-    public component: string
+    public component: string []
     public type: Type
     public date_last_updated?: number
     public date_closed?: number

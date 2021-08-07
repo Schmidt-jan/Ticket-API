@@ -2,11 +2,11 @@ import app from '../src';
 import chai from 'chai';
 import 'mocha';
 import {beforeEach} from "mocha";
-import {instanceOfITicket, ITicket, Ticket} from "../src/module/ticket";
-import {Type} from "../src/module/type";
-import {Priority} from "../src/module/priority";
+import {instanceOfITicket, ITicket, Ticket} from "../src/model/ticket";
+import {Type} from "../src/model/type";
+import {Priority} from "../src/model/priority";
 import chaiHttp = require('chai-http');
-import {TicketList} from "../src/module/ticketList";
+import {TicketList} from "../src/model/ticketList";
 
 chai.use(chaiHttp);
 const sampleITicket : ITicket = {

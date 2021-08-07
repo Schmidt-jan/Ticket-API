@@ -1,7 +1,7 @@
 import express from "express"
 import bodyParser from "body-parser"
-import {instanceOfITicket, ITicket, Ticket} from "../module/ticket";
-import {TicketList} from "../module/ticketList";
+import {instanceOfITicket, ITicket, Ticket} from "../model/ticket";
+import {TicketList} from "../model/ticketList";
 
 const ticket_router = express.Router();
 ticket_router.use(bodyParser.json())

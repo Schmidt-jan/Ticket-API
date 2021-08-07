@@ -1,5 +1,6 @@
-import {Priority} from "./priority";
-import {Type} from "./type";
+import {instanceOfPriority, Priority} from "./priority";
+import {instanceOfType, Type} from "./type";
+import {devNull} from "os";
 
 export interface ITicket {
     title: string
@@ -40,14 +41,46 @@ export class Ticket {
 
     public setInitValues() {
         this.date_last_updated = this.date_creation
-        this.date_closed = undefined
+        this.date_closed = 0
         this.comments = []
     }
 }
 
 
-export function instanceOfITicket(object: any): object is Ticket {
-    return 'title' && 'description' && 'assignee' && 'reporter' && 'priority' && 'component' && 'type' in object;
+export function instanceOfITicket(object: any): [boolean, string] {
+    let hasAllVariables = 'title' && 'description' && 'assignee' && 'reporter' && 'priority' && 'component' && 'type' in object;
+    if (!hasAllVariables)
+        return [false, 'Ticket: has not all needed variables to create a ITicket instance']
+
+    let instanceChecked = variablesCorrectInstantiated(object)
+    if (!instanceChecked[0])
+        return instanceChecked
+
+    return [true, devNull]
+
+}
+
+function variablesCorrectInstantiated(object: any) : [boolean, string] {
+    let priorityCorrect = instanceOfPriority(object.priority)
+    let typeCorrect = instanceOfType(object.type)
+
+    if (!priorityCorrect[0] || !typeCorrect[0]) {
+        let error = priorityCorrect[1]
+        if (error !== devNull ) {
+            error += '\n' + typeCorrect[1]
+        } else {
+            error = typeCorrect[1]
+        }
+        return [false, error]
+    }
+
+    return [true,  devNull]
+}
+
+export function instanceOfFunction(object: any): object is Ticket {
+    let isITicket = instanceOfITicket(object)
+    let isTicket = 'uuid' && 'date_creation' && 'date_last_update' && 'date_closed' && 'comments' in object
+    return isITicket && isTicket
 }
 
 const uuid = (): string => {

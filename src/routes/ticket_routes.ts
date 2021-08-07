@@ -1,9 +1,12 @@
 import express from "express"
 import bodyParser from "body-parser"
 import {instanceOfITicket, ITicket, Ticket} from "../module/ticket";
+import {TicketList} from "../module/ticketList";
 
 const ticket_router = express.Router();
 ticket_router.use(bodyParser.json())
+ticket_router.use(bodyParser.urlencoded({extended: true}))
+
 /**
  * @swagger
  * components:
@@ -122,8 +125,7 @@ ticket_router.use(bodyParser.json())
  *                 $ref: '#/components/schemas/Ticket'
  */
 ticket_router.get("", (req, res) => {
-    console.log('called')
-    res.send("No data stored")
+    res.json(TicketList.tickets)
 })
 
 /**
@@ -151,7 +153,13 @@ ticket_router.get("", (req, res) => {
  *
  */
 ticket_router.get("/:uuid", (req, res) => {
+    let _uuid = req.params.uuid
+    let _ticket = TicketList.tickets.find(e => e.uuid === _uuid)
 
+    if (!_ticket) {
+        return res.status(404).send()
+    }
+    res.json(_ticket)
 })
 
 /**
@@ -179,16 +187,15 @@ ticket_router.get("/:uuid", (req, res) => {
  *        description: Internal server error, please report the entered request
  */
 ticket_router.post("", async (req, res) => {
-    try {
-        let data : any = req.body as ITicket
-        if (!instanceOfITicket(data)) {
-            res.status(400).send({description : "is not an instance of Ticket. Check the attributes"} )
-        }
-        let ticket = new Ticket(data)
-        res.status(201).send(ticket)
-    } catch (error) {
-        res.status(500).send(error)
+    let data: any = req.body as ITicket
+
+    if (!instanceOfITicket(data)[0]) {
+        return res.status(400).json({description: "is not an instance of Ticket. Check the attributes"})
     }
+
+    let ticket: Ticket = new Ticket(data)
+    TicketList.tickets.push(ticket)
+    res.status(201).json(ticket)
 })
 
 
@@ -255,8 +262,5 @@ ticket_router.put("/:uuid", (req, res) => {
 ticket_router.delete("/:uuid", (req, res) => {
 
 })
-
-
-
 
 export default module.exports = ticket_router

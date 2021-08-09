@@ -60,10 +60,9 @@ export class Ticket extends BasicTicket{
     public comments?: string []
 
 
-    constructor(obj: ITicket, init: boolean = true) {
+    constructor(obj: ITicket) {
         super(obj.title, obj.description, obj.assignee, obj.reporter, obj.priority, obj.component, obj.type)
-        if (init)
-            this.setInitValues()
+        this.setInitValues()
     }
 
     public setInitValues() {

@@ -91,4 +91,52 @@ describe('Ticket-API Request', () => {
                 chai.expect('description' in error).to.eql(true)
             })
     });
+
+    it('put ticket values - uuid not found', () => {
+        return chai.request(app)
+            .put('/tickets/0')
+            .set('content-type', 'application/json')
+            .send({title: 'New title'})
+            .then(res => {
+                chai.expect(res.status).to.eql(404)
+            })
+    })
+
+    it('put ticket values - false variable type', () => {
+        return chai.request(app)
+            .put(`/tickets/${sampleTicket.uuid}`)
+            .set('content-type', 'application/json')
+            .send({title: 5})
+            .then(res => {
+                chai.expect(res.status).to.eql(400)
+                let error = res.body
+                chai.expect('description' in error).to.eql(true)
+            })
+    })
+
+    it('put ticket values - correct', () => {
+        return chai.request(app)
+            .put(`/tickets/${sampleTicket.uuid}`)
+            .set('content-type', 'application/json')
+            .send({title: 'New title'})
+            .then(res => {
+                chai.expect(res.status).to.eql(200)
+            })
+    })
+
+    it('delete ticket - uuid not found', () => {
+        return chai.request(app)
+            .delete('/tickets/0')
+            .then(res => {
+                chai.expect(res.status).to.eql(404)
+            })
+    })
+
+    it('delete ticket - ok', () => {
+        return chai.request(app)
+            .delete(`/tickets/${sampleTicket.uuid}`)
+            .then(res => {
+                chai.expect(res.status).to.eql(204)
+            })
+    })
 })

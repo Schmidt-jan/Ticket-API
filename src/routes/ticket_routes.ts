@@ -189,19 +189,13 @@ ticket_router.get("/:uuid", (req, res) => {
  *        description: Internal server error, please report the entered request
  */
 ticket_router.post("", async (req, res) => {
-    try {
-        let ticket = await checkAndGetInputOfTicket(req.body)
-        if (ticket instanceof Ticket){
-            TicketList.tickets.push(ticket)
-            return res.status(201).json(ticket)
-        }
-
-        return res.status(400).json(ticket)
-    } catch (error) {
-        console.log(error)
-        return res.status(400).json({description: `${error}`})
+    let ticket = await checkAndGetInputOfTicket(req.body)
+    if (ticket instanceof Ticket) {
+        TicketList.tickets.push(ticket)
+        return res.status(201).json(ticket)
     }
 
+    return res.status(400).json(ticket)
 })
 
 async function checkAndGetInputOfTicket(obj: any): Promise<Ticket | {}> {
@@ -268,8 +262,8 @@ ticket_router.put("/:uuid", async (req, res) => {
     return res.json(_updatedTicket)
 })
 
-function updateObject<Type>(oldData: Type, newData: any): Type | [{}]{
-    for(let i in newData) {
+function updateObject<Type>(oldData: Type, newData: any): Type | [{}] {
+    for (let i in newData) {
         // @ts-ignore
         let varFromTicket = oldData[`${i}`]
         // @ts-ignore

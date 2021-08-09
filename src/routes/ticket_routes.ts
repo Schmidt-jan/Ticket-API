@@ -1,7 +1,9 @@
 import express from "express"
 import bodyParser from "body-parser"
-import {instanceOfITicket, ITicket, Ticket} from "../model/ticket";
+import {BasicTicket, Ticket} from "../model/ticket";
 import {TicketList} from "../model/ticketList";
+import {plainToClass} from "class-transformer";
+import {validate, ValidationError} from "class-validator";
 
 const ticket_router = express.Router();
 ticket_router.use(bodyParser.json())
@@ -187,16 +189,32 @@ ticket_router.get("/:uuid", (req, res) => {
  *        description: Internal server error, please report the entered request
  */
 ticket_router.post("", async (req, res) => {
-    let data: any = req.body as ITicket
+    try {
+        let ticket = await checkAndGetInputOfTicket(req.body)
+        if (ticket instanceof Ticket){
+            TicketList.tickets.push(ticket)
+            return res.status(201).json(ticket)
+        }
 
-    if (!instanceOfITicket(data)[0]) {
-        return res.status(400).json({description: "is not an instance of Ticket. Check the attributes"})
+        return res.status(400).json(ticket)
+    } catch (error) {
+        console.log(error)
+        return res.status(400).json({description: `${error}`})
     }
 
-    let ticket: Ticket = new Ticket(data)
-    TicketList.tickets.push(ticket)
-    res.status(201).json(ticket)
 })
+
+async function checkAndGetInputOfTicket(obj: any): Promise<Ticket | {}> {
+    let _basicTicket: BasicTicket = plainToClass(BasicTicket, obj as Object)
+    let _validationError: Array<ValidationError> = await validate(_basicTicket)
+
+    if (_validationError.length > 0) {
+        console.log(_validationError)
+        return {description: _validationError[0].constraints}
+    }
+
+    return new Ticket(_basicTicket)
+}
 
 
 /**
@@ -234,9 +252,39 @@ ticket_router.post("", async (req, res) => {
  *         description: Internal server error, please report the entered request
  *
  */
-ticket_router.put("/:uuid", (req, res) => {
+ticket_router.put("/:uuid", async (req, res) => {
+    let _uuid = req.params.uuid
+    let _index = TicketList.tickets.findIndex(e => e.uuid === _uuid)
+    if (_index == -1)
+        return res.status(404).send()
 
+    let _ticket: Ticket = Object.assign({}, TicketList.tickets[_index])
+    let _updatedTicket = updateObject(_ticket, req.body)
+
+    if (Array.isArray(_updatedTicket))
+        return res.status(400).json(_updatedTicket[0])
+
+    TicketList.tickets[_index] = _updatedTicket
+    return res.json(_updatedTicket)
 })
+
+function updateObject<Type>(oldData: Type, newData: any): Type | [{}]{
+    for(let i in newData) {
+        // @ts-ignore
+        let varFromTicket = oldData[`${i}`]
+        // @ts-ignore
+        let typeOfVarFromClass = typeof oldData[`${i}`]
+        let typeOfVarFromJson = typeof newData[`${i}`]
+        if (varFromTicket && typeOfVarFromJson === typeOfVarFromClass) {
+            // @ts-ignore
+            oldData[`${i}`] = newData[`${i}`]
+        } else {
+            return [{description: `type of '${i}' cannot get changed from '${typeOfVarFromClass}' to '${typeOfVarFromJson}'`}]
+        }
+    }
+    console.log(typeof oldData)
+    return oldData
+}
 
 
 /**
@@ -260,6 +308,13 @@ ticket_router.put("/:uuid", (req, res) => {
  *
  */
 ticket_router.delete("/:uuid", (req, res) => {
+    let _uuid = req.params.uuid
+    let _index = TicketList.tickets.findIndex(e => e.uuid === _uuid)
+    if (_index == -1)
+        return res.status(404).send()
+
+    TicketList.tickets.splice(_index, 1)
+    res.status(204).send()
 
 })
 

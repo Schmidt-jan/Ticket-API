@@ -1,42 +1,69 @@
-import {instanceOfPriority, Priority} from "./priority";
-import {instanceOfType, Type} from "./type";
-import {devNull} from "os";
+import {IsArray, IsInt, IsString, Max, Min} from "class-validator";
+import {Type} from "./type";
+import {Priority} from "./priority";
 
 export interface ITicket {
     title: string
     description: string
     assignee: string
     reporter: string
-    priority: Priority
+    priority: number
     component: string []
-    type: Type
+    type: number
 }
 
-export class Ticket {
-    readonly uuid: string = uuid()
-    readonly date_creation: number = Date.now()
+export class BasicTicket {
+    @IsString()
     public title: string
+    @IsString()
     public description: string
+    @IsString()
     public assignee: string
+    @IsString()
     public reporter: string
+    @IsInt()
+    @Max(Priority.Low)
+    @Min(Priority.Blocker)
     public priority: Priority
     public component: string []
+    @IsInt()
+    @Max(2)
+    @Min(0)
     public type: Type
+
+
+    constructor(_title:string, _description: string, _assignee: string, _reporter: string,
+                _priority: number, _component: string[], _type: number) {
+
+        this.title = _title
+        this.description = _description
+        this.assignee = _assignee
+        this.reporter = _reporter
+        this.priority = _priority
+        this.component = _component
+        this.type = _type
+    }
+
+
+}
+
+export class Ticket extends BasicTicket{
+    @IsString()
+    readonly uuid: string = uuid()
+    @IsInt()
+    readonly date_creation: number = Date.now()
+    @IsInt()
     public date_last_updated?: number
+    @IsInt()
     public date_closed?: number
+    @IsArray()
     public comments?: string []
 
 
-    constructor(_ticket: ITicket) {
-        this.title = _ticket.title
-        this.description = _ticket.description
-        this.assignee = _ticket.assignee
-        this.reporter = _ticket.reporter
-        this.priority = _ticket.priority
-        this.component = _ticket.component
-        this.type = _ticket.type
-
-        this.setInitValues()
+    constructor(obj: ITicket, init: boolean = true) {
+        super(obj.title, obj.description, obj.assignee, obj.reporter, obj.priority, obj.component, obj.type)
+        if (init)
+            this.setInitValues()
     }
 
     public setInitValues() {
@@ -44,43 +71,6 @@ export class Ticket {
         this.date_closed = 0
         this.comments = []
     }
-}
-
-
-export function instanceOfITicket(object: any): [boolean, string] {
-    let hasAllVariables = 'title' && 'description' && 'assignee' && 'reporter' && 'priority' && 'component' && 'type' in object;
-    if (!hasAllVariables)
-        return [false, 'Ticket: has not all needed variables to create a ITicket instance']
-
-    let instanceChecked = variablesCorrectInstantiated(object)
-    if (!instanceChecked[0])
-        return instanceChecked
-
-    return [true, devNull]
-
-}
-
-function variablesCorrectInstantiated(object: any) : [boolean, string] {
-    let priorityCorrect = instanceOfPriority(object.priority)
-    let typeCorrect = instanceOfType(object.type)
-
-    if (!priorityCorrect[0] || !typeCorrect[0]) {
-        let error = priorityCorrect[1]
-        if (error !== devNull ) {
-            error += '\n' + typeCorrect[1]
-        } else {
-            error = typeCorrect[1]
-        }
-        return [false, error]
-    }
-
-    return [true,  devNull]
-}
-
-export function instanceOfFunction(object: any): object is Ticket {
-    let isITicket = instanceOfITicket(object)
-    let isTicket = 'uuid' && 'date_creation' && 'date_last_update' && 'date_closed' && 'comments' in object
-    return isITicket && isTicket
 }
 
 const uuid = (): string => {

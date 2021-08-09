@@ -2,11 +2,12 @@ import app from '../src';
 import chai from 'chai';
 import 'mocha';
 import {beforeEach} from "mocha";
-import {instanceOfITicket, ITicket, Ticket} from "../src/model/ticket";
+import { ITicket, Ticket} from "../src/model/ticket";
 import {Type} from "../src/model/type";
 import {Priority} from "../src/model/priority";
 import chaiHttp = require('chai-http');
 import {TicketList} from "../src/model/ticketList";
+import {validate, ValidationError} from "class-validator";
 
 chai.use(chaiHttp);
 const sampleITicket : ITicket = {
@@ -71,12 +72,10 @@ describe('Ticket-API Request', () => {
             .post('/tickets')
             .set('content-type', 'application/json')
             .send(JSON.stringify(sampleITicket))
-            .then(res => {
+            .then(async res => {
                 chai.expect(res.status).to.eql(201)
-                let ticket = normalizeJson(res.body)
-                let isInstance = instanceOfITicket(ticket)
-                console.log(isInstance[1])
-                chai.expect(isInstance[0]).to.eql(true)
+                let _validationError: Array<ValidationError> = await validate(sampleITicket)
+                chai.expect(_validationError.length).to.eql(0)
             })
     })
 

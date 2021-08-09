@@ -18,3 +18,16 @@ Run tests
 ```
 npm test
 ```
+##Start/ Stop mongoDb container
+Start the docker container
+```
+docker-compose up
+```
+Shutdown the docker container
+```
+docker-compose down
+```
+To get into the docker container run
+```
+docker exec -it ticketApi_storage /bin/bash
+```

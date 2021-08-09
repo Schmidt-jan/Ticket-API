@@ -3,6 +3,7 @@ import morgan from "morgan"
 import swaggerJSDoc from "swagger-jsdoc"
 import swaggerUI from "swagger-ui-express"
 import ticket_routes from "./routes/ticket_routes";
+import { connectToDb} from "./Utils";
 
 const port = process.env.PORT || 4000
 const app = express()
@@ -32,6 +33,8 @@ const specs = swaggerJSDoc(swagger_options)
 app.use("/docs", swaggerUI.serve, swaggerUI.setup(specs))
 
 app.use("/tickets", ticket_routes)
+
+connectToDb()
 
 app.listen(port, () => {
     console.log(`Server started at http://localhost:${port}`)
